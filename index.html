@@ -10,18 +10,25 @@
     <!-- Place favicon.ico in the root directory -->
 
     <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" type="text/css" href="css/menus_dialogs/confirm.css">
+    <link rel="stylesheet" type="text/css" href="css/widgets/headers.css">
+    <link rel="stylesheet" type="text/css" href="css/widgets/buttons.css">
   </head>
   <body>
-    <!-- Uncomment this button to install locally without going
+    <!-- Use this installation button to install locally without going
          through the marketpace (see app.js) -->
-    <!-- <button id="install-btn">Install</button>     -->
+    <!-- <button id="install-btn">Install</button>  -->
 
     <!-- Write your application here -->
 
-
-
-
-
+    <a href="#" role="button" class="recommend" id="photobutton">Take a photo</a>
+    <canvas id="myCanvas" width="300" height="300"></canvas>
+    <button class="mini" id="instabutton">Negative</button>
+    <button class="mini" id="instabutton2">B&W</button>
+    <button class="mini" id="instabutton3">Sepia</button>
+    <button class="mini danger">Share</button>
+    
     <!-- Using require.js, a module system for javascript, include the
          js files. This loads "main.js", which in turn can load other
          files, all handled by require.js:

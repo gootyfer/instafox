@@ -2,19 +2,6 @@
 // This uses require.js to structure javascript:
 // http://requirejs.org/docs/api.html#define
 
-// A cross-browser requestAnimationFrame
-// See https://hacks.mozilla.org/2011/08/animating-with-javascript-from-setinterval-to-requestanimationframe/
-var requestAnimFrame = (function(){
-    return window.requestAnimationFrame       ||
-        window.webkitRequestAnimationFrame ||
-        window.mozRequestAnimationFrame    ||
-        window.oRequestAnimationFrame      ||
-        window.msRequestAnimationFrame     ||
-        function(callback){
-            window.setTimeout(callback, 1000 / 60);
-        };
-})();
-
 define(function(require) {
     // Zepto provides nice js and DOM methods (very similar to jQuery,
     // and a lot smaller):
@@ -29,107 +16,114 @@ define(function(require) {
     // installation button. See <button class="install-btn"> in
     // index.html
     require('./install-button');
-
-    // Simple input library for our game
-    var input = require('./input');
-
-    // Create the canvas
-    var canvas = document.createElement("canvas");
-    var ctx = canvas.getContext("2d");
-    canvas.width = 512;
-    canvas.height = 480;
-    document.body.appendChild(canvas);
-
-    // The player's state
-    var player = {
-        x: 0,
-        y: 0,
-        sizeX: 50,
-        sizeY: 50
-    };
-
-    // Reset game to original state
-    function reset() {
-        player.x = 0;
-        player.y = 0;
-    };
-
-    // Pause and unpause
-    function pause() {
-        running = false;
-    }
-
-    function unpause() {
-        running = true;
-        then = Date.now();
-        main();
-    }
-
-    // Update game objects
-    function update(dt) {
-        // Speed in pixels per second
-        var playerSpeed = 100;
-
-        if(input.isDown('DOWN')) {
-            // dt is the number of seconds passed, so multiplying by
-            // the speed gives u the number of pixels to move
-            player.y += playerSpeed * dt;
-        }
-
-        if(input.isDown('UP')) {
-            player.y -= playerSpeed * dt;
-        }
-
-        if(input.isDown('LEFT')) {
-            player.x -= playerSpeed * dt;
-        }
-
-        if(input.isDown('RIGHT')) {
-            player.x += playerSpeed * dt;
-        }
-
-        // You can pass any letter to `isDown`, in addition to DOWN,
-        // UP, LEFT, RIGHT, and SPACE:
-        // if(input.isDown('a')) { ... }
-    };
-
-    // Draw everything
-    function render() {
-        ctx.fillStyle = 'black';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        ctx.fillStyle = 'green';
-        ctx.fillRect(player.x, player.y, player.sizeX, player.sizeY);
-    };
-
-    // The main game loop
-    function main() {
-        if(!running) {
-            return;
-        }
-
-        var now = Date.now();
-        var dt = (now - then) / 1000.0;
-
-        update(dt);
-        render();
-
-        then = now;
-        requestAnimFrame(main);
-    };
-
-    // Don't run the game when the tab isn't visible
-    window.addEventListener('focus', function() {
-        unpause();
+    
+    document.getElementById("photobutton").addEventListener("click", function(){
+        var pick = new MozActivity({
+           name: "pick",
+           data: {
+               type: ["image/png", "image/jpg", "image/jpeg"]
+            }
+        });
+        pick.onsuccess = function () { 
+            // Create image and set the returned blob as the src
+            var img = document.createElement("img");
+            img.src = window.URL.createObjectURL(this.result.blob);
+            drawPhotoInCanvas(img);
+            
+        };
+         
+        pick.onerror = function () { 
+            // If an error occurred or the user canceled the activity
+            alert("Can't view the image!");
+        };
     });
 
-    window.addEventListener('blur', function() {
-        pause();
+    var ctx;
+    // Write your app here.
+    function drawPhotoInCanvas(img){
+        //document.body.appendChild(img);
+        // Present that image in your app
+        var canvas = document.getElementById("myCanvas");
+        ctx = canvas.getContext("2d");
+        img.onload = function(){
+            ctx.drawImage(img,0,0, 300, 300);
+        }
+        //console.log("image drawn");
+        //var imagePresenter = document.querySelector("#image-presenter");
+        //imagePresenter.appendChild(img);
+    }
+
+    document.getElementById("instabutton").addEventListener("click", function(){
+        if(!ctx) return;
+        var imageData = ctx.getImageData(0, 0, 300, 300);
+        var data = imageData.data;
+
+        for(var i = 0; i < data.length; i += 4) {
+          // red
+          data[i] = 255 - data[i];
+          // green
+          data[i + 1] = 255 - data[i + 1];
+          // blue
+          data[i + 2] = 255 - data[i + 2];
+        }
+
+        // overwrite original image
+        ctx.putImageData(imageData, 0, 0);
     });
 
-    // Let's play this game!
-    reset();
-    var then = Date.now();
-    var running = true;
-    main();
+    document.getElementById("instabutton2").addEventListener("click", function(){
+        if(!ctx) return;
+        var imageData = ctx.getImageData(0, 0, 300, 300);
+        var data = imageData.data;
+
+        for(var i = 0; i < data.length; i += 4) {
+          var brightness = 0.34 * data[i] + 0.5 * data[i + 1] + 0.16 * data[i + 2];
+          // red
+          data[i] = brightness;
+          // green
+          data[i + 1] = brightness;
+          // blue
+          data[i + 2] = brightness;
+        }
+
+        // overwrite original image
+        ctx.putImageData(imageData, 0, 0);
+    });
+
+    document.getElementById("instabutton3").addEventListener("click", function(){
+        var r = [0, 0, 0, 1, 1, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 7, 7, 7, 7, 8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10, 11, 11, 12, 12, 12, 12, 13, 13, 13, 14, 14, 15, 15, 16, 16, 17, 17, 17, 18, 19, 19, 20, 21, 22, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 39, 40, 41, 42, 44, 45, 47, 48, 49, 52, 54, 55, 57, 59, 60, 62, 65, 67, 69, 70, 72, 74, 77, 79, 81, 83, 86, 88, 90, 92, 94, 97, 99, 101, 103, 107, 109, 111, 112, 116, 118, 120, 124, 126, 127, 129, 133, 135, 136, 140, 142, 143, 145, 149, 150, 152, 155, 157, 159, 162, 163, 165, 167, 170, 171, 173, 176, 177, 178, 180, 183, 184, 185, 188, 189, 190, 192, 194, 195, 196, 198, 200, 201, 202, 203, 204, 206, 207, 208, 209, 211, 212, 213, 214, 215, 216, 218, 219, 219, 220, 221, 222, 223, 224, 225, 226, 227, 227, 228, 229, 229, 230, 231, 232, 232, 233, 234, 234, 235, 236, 236, 237, 238, 238, 239, 239, 240, 241, 241, 242, 242, 243, 244, 244, 245, 245, 245, 246, 247, 247, 248, 248, 249, 249, 249, 250, 251, 251, 252, 252, 252, 253, 254, 254, 254, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255],
+    g = [0, 0, 1, 2, 2, 3, 5, 5, 6, 7, 8, 8, 10, 11, 11, 12, 13, 15, 15, 16, 17, 18, 18, 19, 21, 22, 22, 23, 24, 26, 26, 27, 28, 29, 31, 31, 32, 33, 34, 35, 35, 37, 38, 39, 40, 41, 43, 44, 44, 45, 46, 47, 48, 50, 51, 52, 53, 54, 56, 57, 58, 59, 60, 61, 63, 64, 65, 66, 67, 68, 69, 71, 72, 73, 74, 75, 76, 77, 79, 80, 81, 83, 84, 85, 86, 88, 89, 90, 92, 93, 94, 95, 96, 97, 100, 101, 102, 103, 105, 106, 107, 108, 109, 111, 113, 114, 115, 117, 118, 119, 120, 122, 123, 124, 126, 127, 128, 129, 131, 132, 133, 135, 136, 137, 138, 140, 141, 142, 144, 145, 146, 148, 149, 150, 151, 153, 154, 155, 157, 158, 159, 160, 162, 163, 164, 166, 167, 168, 169, 171, 172, 173, 174, 175, 176, 177, 178, 179, 181, 182, 183, 184, 186, 186, 187, 188, 189, 190, 192, 193, 194, 195, 195, 196, 197, 199, 200, 201, 202, 202, 203, 204, 205, 206, 207, 208, 208, 209, 210, 211, 212, 213, 214, 214, 215, 216, 217, 218, 219, 219, 220, 221, 222, 223, 223, 224, 225, 226, 226, 227, 228, 228, 229, 230, 231, 232, 232, 232, 233, 234, 235, 235, 236, 236, 237, 238, 238, 239, 239, 240, 240, 241, 242, 242, 242, 243, 244, 245, 245, 246, 246, 247, 247, 248, 249, 249, 249, 250, 251, 251, 252, 252, 252, 253, 254, 255],
+    b = [53, 53, 53, 54, 54, 54, 55, 55, 55, 56, 57, 57, 57, 58, 58, 58, 59, 59, 59, 60, 61, 61, 61, 62, 62, 63, 63, 63, 64, 65, 65, 65, 66, 66, 67, 67, 67, 68, 69, 69, 69, 70, 70, 71, 71, 72, 73, 73, 73, 74, 74, 75, 75, 76, 77, 77, 78, 78, 79, 79, 80, 81, 81, 82, 82, 83, 83, 84, 85, 85, 86, 86, 87, 87, 88, 89, 89, 90, 90, 91, 91, 93, 93, 94, 94, 95, 95, 96, 97, 98, 98, 99, 99, 100, 101, 102, 102, 103, 104, 105, 105, 106, 106, 107, 108, 109, 109, 110, 111, 111, 112, 113, 114, 114, 115, 116, 117, 117, 118, 119, 119, 121, 121, 122, 122, 123, 124, 125, 126, 126, 127, 128, 129, 129, 130, 131, 132, 132, 133, 134, 134, 135, 136, 137, 137, 138, 139, 140, 140, 141, 142, 142, 143, 144, 145, 145, 146, 146, 148, 148, 149, 149, 150, 151, 152, 152, 153, 153, 154, 155, 156, 156, 157, 157, 158, 159, 160, 160, 161, 161, 162, 162, 163, 164, 164, 165, 165, 166, 166, 167, 168, 168, 169, 169, 170, 170, 171, 172, 172, 173, 173, 174, 174, 175, 176, 176, 177, 177, 177, 178, 178, 179, 180, 180, 181, 181, 181, 182, 182, 183, 184, 184, 184, 185, 185, 186, 186, 186, 187, 188, 188, 188, 189, 189, 189, 190, 190, 191, 191, 192, 192, 193, 193, 193, 194, 194, 194, 195, 196, 196, 196, 197, 197, 197, 198, 199];
+
+
+        if(!ctx) return;
+        var imageData = ctx.getImageData(0, 0, 300, 300);
+        var data = imageData.data;
+
+         for (var i=0; i < data.length; i+=4) {
+
+        // change image colors
+        data[i] = r[data[i]];
+        data[i+1] = g[data[i+1]];
+        data[i+2] = b[data[i+2]];
+        
+        var noise = 20;
+        // apply noise
+        if (noise > 0) {
+            var noise = Math.round(noise - Math.random() * noise);
+
+            for(var j=0; j<3; j++){
+                var iPN = noise + data[i+j];
+                data[i+j] = (iPN > 255) ? 255 : iPN;
+            }
+        }
+    }
+
+
+        // overwrite original image
+        ctx.putImageData(imageData, 0, 0);
+    });
+
+
 });
+
